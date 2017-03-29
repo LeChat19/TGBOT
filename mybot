@@ -1,0 +1,60 @@
+from telegram.ext import Updater
+from telegram.ext import CommandHandler, MessageHandler, Filters
+from telegram import InlineQueryResultArticle, InputTextMessageContent
+import logging
+from telegram.ext import InlineQueryHandler
+
+def inline_caps(bot, update):
+    print("it's inline handler")
+    query = update.inline_query.query
+    if not query:
+        return
+    results = list()
+    results.append(
+        InlineQueryResultArticle(
+            id=query.upper(),
+            title='Mycaps',
+            input_message_content=InputTextMessageContent(query.upper())
+        )
+    )
+    bot.answerInlineQuery(update.inline_query.id, results)
+
+def start(bot, update):
+    bot.sendMessage(chat_id=update.message.chat_id, text="I'm a bot, please talk to me!")
+
+
+def echo(bot, update):
+    print(update.message)
+    bot.sendMessage(chat_id=update.message.chat_id, text=update.message.text)
+
+def caps(bot, update, args):
+    text_caps = ' '.join(args).upper()
+    bot.sendMessage(chat_id=update.message.chat_id, text=text_caps)
+
+def unknown(bot, update):
+    bot.sendMessage(chat_id=update.message.chat_id, text="Sorry, I didn't understand that command.")
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+
+updater = Updater(token='350374483:AAEUJ4_W7CfNoVUArvY_iwi1ejUlbcMY5hY')
+
+dispatcher = updater.dispatcher
+
+start_handler = CommandHandler('start', start)
+dispatcher.add_handler(start_handler)
+
+
+inline_caps_handler = InlineQueryHandler(inline_caps)
+dispatcher.add_handler(inline_caps_handler)
+
+echo_handler = MessageHandler(Filters.text, echo)
+dispatcher.add_handler(echo_handler)
+
+caps_handler = CommandHandler('caps', caps, pass_args=True)
+dispatcher.add_handler(caps_handler)
+
+unknown_handler = MessageHandler(Filters.command, unknown)
+dispatcher.add_handler(unknown_handler)
+
+updater.start_polling()
